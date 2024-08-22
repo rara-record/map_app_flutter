@@ -141,19 +141,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
                     onPressed: () async {
-                      if (formKey.currentState!.validate()) {
-                        String emailValue = _emailController.text;
-                        String passwordValue = _passwordController.text;
-                        // supabase 계정 등록
-                        bool isRegisterSuccess =
-                            await registerAccount(emailValue, passwordValue);
+                      String emailValue = _emailController.text;
+                      String passwordValue = _passwordController.text;
 
-                        if (!context.mounted) return;
+                      // 유효성 검사 체크
+                      if (!formKey.currentState!.validate()) {
+                        return;
+                      }
 
-                        if (!isRegisterSuccess) {
-                          showSnackBar(context, '회원가입에 실패했습니다.');
-                          return;
-                        }
+                      // supabase 계정 등록
+                      bool isRegisterSuccess =
+                          await registerAccount(emailValue, passwordValue);
+
+                      if (!context.mounted) return;
+
+                      if (!isRegisterSuccess) {
+                        showSnackBar(context, '회원가입에 실패했습니다.');
+                        return;
                       }
 
                       showSnackBar(context, '회원가입에 성공하였습니다.');

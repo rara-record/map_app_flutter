@@ -1,0 +1,31 @@
+name: map_app
+description: "A new Flutter project."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.4 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.6
+  supabase_flutter: ^2.5.11 # supabase
+  image_picker: ^1.1.2 # image data
+  flutter_naver_map: ^1.2.3+1 # naver map
+  geolocator: ^12.0.0 # 주소 <-> 위경도 변환
+  http: ^1.2.2 # http 요청 통신
+  daum_postcode_search: ^0.0.2 # 다음 주소 검색
+  flutter_inappwebview: ^5.8.0 # 다음 주소 검색 (웹뷰)
+  intl: ^0.19.0 # DateFormat
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

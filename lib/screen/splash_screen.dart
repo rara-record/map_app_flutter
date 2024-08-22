@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 // 시작화면
-class SpashScreen extends StatefulWidget {
-  const SpashScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<SpashScreen> createState() => _SpashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SpashScreenState extends State<SpashScreen> {
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 3000), () {
       Navigator.popAndPushNamed(context, '/login');
     });
     super.initState();

@@ -11,11 +11,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Center(
-          child: Text(
-        '로그인 화면',
-      )),
+        child: TextButton(
+          onPressed: () {
+            Navigator.pushNamed(context, '/register');
+          },
+          child: const Text('Register'),
+        ),
+      ),
     );
   }
 }

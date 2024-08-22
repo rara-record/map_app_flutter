@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class ElevateButtonCustom extends StatelessWidget {
+class ElevatedButtonCustom extends StatelessWidget {
   final String text; // 버튼 텍스트
   final Color backgroundColor; // 버튼 배경 색상
   final Color textColor; // 버튼 텍스트 색상
   final Function onPressed; // 버튼 클릭 신호
 
-  const ElevateButtonCustom(
+  const ElevatedButtonCustom(
       {super.key,
       required this.text,
       required this.backgroundColor,

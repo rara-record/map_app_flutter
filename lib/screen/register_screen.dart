@@ -337,7 +337,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       // 1. 프로필 사진 등록했다면 업로드 처리
       DateTime nowTime = DateTime.now();
-
+      String? imageUrl;
       if (profileImg != null) {
         final imgFile = profileImg;
 
@@ -350,7 +350,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             );
 
         // 업로드 된 파일의 이미지 url 주소를 취득
-        supabase.storage
+        imageUrl = supabase.storage
             .from('food_pick')
             .getPublicUrl('profiles/${response.user!.id}_$nowTime.jpg');
       }
@@ -358,6 +358,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // 2. supabase db에 insert
       await supabase.from('user').insert(
             UserModel(
+                    profileUrl: imageUrl,
                     name: _nameController.text,
                     email: emailValue,
                     introduce: _introduceController.text,

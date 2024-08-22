@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:map_app/common/snackbar_uril.dart';
 import 'package:map_app/widget/appbar.dart';
 import 'package:map_app/widget/buttons.dart';
 import 'package:map_app/widget/text.dart';
 import 'package:map_app/widget/text_fields.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:map_app/model/users.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -138,15 +140,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     text: '가입 완료',
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
-                    onPressed: () {
+                    onPressed: () async {
                       if (formKey.currentState!.validate()) {
-                        String emialValue = _emailController.text;
+                        String emailValue = _emailController.text;
                         String passwordValue = _passwordController.text;
-
                         // supabase 계정 등록
-                        registerAccount(emialValue, passwordValue);
-                        // Navigator.pushNamed(context, '/login');
+                        bool isRegisterSuccess =
+                            await registerAccount(emailValue, passwordValue);
+
+                        if (!context.mounted) return;
+
+                        if (!isRegisterSuccess) {
+                          showSnackBar(context, '회원가입에 실패했습니다.');
+                          return;
+                        }
                       }
+
+                      showSnackBar(context, '회원가입에 성공하였습니다.');
+                      Navigator.pop(context);
                     },
                   ),
                 )
@@ -308,5 +319,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return '자기소개를 입력해주세요';
     }
     return null;
+  }
+
+  Future<bool> registerAccount(String emailValue, String passwordValue) async {
+    // 이메일 회원가입 시도
+    bool isRegisterSuccess = false;
+    final AuthResponse response =
+        await supabase.auth.signUp(email: emailValue, password: passwordValue);
+
+    if (response.user != null) {
+      // 회원가입 정상 처리
+      isRegisterSuccess = true;
+
+      // 1. 프로필 사진 등록했다면 업로드 처리
+      DateTime nowTime = DateTime.now();
+
+      if (profileImg != null) {
+        final imgFile = profileImg;
+
+        // 이미지 파일 업로드
+        await supabase.storage.from('food_pick').upload(
+              'profiles/${response.user!.id}_$nowTime.jpg',
+              imgFile!,
+              fileOptions:
+                  const FileOptions(cacheControl: '3600', upsert: true),
+            );
+
+        // 업로드 된 파일의 이미지 url 주소를 취득
+        supabase.storage
+            .from('food_pick')
+            .getPublicUrl('profiles/${response.user!.id}_$nowTime.jpg');
+      }
+
+      // 2. supabase db에 insert
+      await supabase.from('user').insert(
+            UserModel(
+                    name: _nameController.text,
+                    email: emailValue,
+                    introduce: _introduceController.text,
+                    uid: response.user!.id)
+                .toMap(),
+          );
+    } else {
+      isRegisterSuccess = false;
+    }
+
+    return isRegisterSuccess;
   }
 }

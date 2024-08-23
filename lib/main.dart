@@ -19,10 +19,10 @@ Future<void> main() async {
   );
 
   // init naver map
-  // await NaverMapSdk.instance.initialize(
-  //   clientId: 'pnojo08adn',
-  //   onAuthFailed: (ex) => print('네이버 맵 인증오류 : $ex'),
-  // );
+  await NaverMapSdk.instance.initialize(
+    clientId: 'pnojo08adn',
+    onAuthFailed: (ex) => print('네이버 맵 인증오류 : $ex'),
+  );
 
   runApp(const MyApp());
 }
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        // '/main': (context) => const MainScreen(),
+        '/main': (context) => const MainScreen(),
       },
     );
   }

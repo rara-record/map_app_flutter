@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- 위치 권한 요청 메시지 -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>앱이 사용자의 위치를 사용합니다. 위치 권한을 허용해 주세요.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>앱이 백그라운드에서도 사용자의 위치를 사용합니다. 위치 권한을 허용해 주세요.</string>
+
+	<!-- App Transport Security 설정 (선택 사항) -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+	</dict>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

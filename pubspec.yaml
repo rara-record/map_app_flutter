@@ -20,6 +20,7 @@ dependencies:
   daum_postcode_search: ^0.0.2 # 다음 주소 검색
   flutter_inappwebview: ^5.8.0 # 다음 주소 검색 (웹뷰)
   intl: ^0.19.0 # DateFormat
+  android_intent_plus: ^3.0.0
 
 dev_dependencies:
   flutter_test:

@@ -10,7 +10,6 @@ Future<void> main() async {
   // main 메소드에서 비동기로 데이터를 다루는 상황이 있을 때 반드시 최초에 호출해줘야 함
   WidgetsFlutterBinding.ensureInitialized();
 
-  // init supabase
   await Supabase.initialize(
     // init supabase
     url: 'https://fnpeucnejzwsbcczaohr.supabase.co',

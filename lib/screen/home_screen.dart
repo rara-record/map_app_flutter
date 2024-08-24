@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_app/model/food_store.dart';
+import 'package:map_app/widget/buttons.dart';
+import 'package:map_app/widget/text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // 홈 화면
@@ -41,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
           }
 
           // 데이터 통신 중 에러
-          if (!snapshot.hasError) {
+          if (snapshot.hasError) {
             return Center(
               child: Text(
                 'Error :${snapshot.error}',
@@ -67,6 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // 이동하고싶은 카메라 위치 추출 (내 위치)
               NCameraPosition myPosition = await getMyLocation();
+
+              // 서버에 등록된 음식점 리스트 정보들을 위경도를 가지고와서 찍기
+              _buildMarkers();
 
               // 추출한 위치를 기반으로 카메라 업데이트 (이동)
               _mapController
@@ -123,5 +128,121 @@ class _HomeScreenState extends State<HomeScreen> {
     List<FoodStoreModel> lstFoodStore =
         foodListMap.map((el) => FoodStoreModel.fromJSON(el)).toList();
     return lstFoodStore;
+  }
+
+  void _buildMarkers() {
+    // 마커 생성
+
+    // 마커 초기화
+    _mapController.clearOverlays();
+
+    for (FoodStoreModel foodStoreModel in _lstFoodStore!) {
+      // 마커 객체 인스턴스 생성
+      final marker = NMarker(
+        id: foodStoreModel.id.toString(),
+        position: NLatLng(foodStoreModel.latitude, foodStoreModel.longitude),
+        caption: NOverlayCaption(text: foodStoreModel.storeName),
+      );
+
+      // 마커에 클릭 가능 기능 부여
+      marker.setOnTapListener((overlay) {
+        _showBottomSummaryDialog(foodStoreModel);
+      });
+
+      // 네이버 맵에 마커 추가
+      _mapController.addOverlay(marker);
+    }
+  }
+
+  void _showBottomSummaryDialog(FoodStoreModel foodStoreModel) {
+    // 맛집 정보를 보여주는 다이얼로그
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(10),
+          topRight: Radius.circular(10),
+        ),
+      ),
+      builder: (BuildContext context) {
+        return Wrap(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /* header */
+                  Row(
+                    children: [
+                      // 타이틀
+                      SectionText(
+                        text: foodStoreModel.storeName,
+                        textColor: Colors.black,
+                      ),
+
+                      // 빈공간
+                      const Spacer(),
+
+                      // 닫기버튼
+                      GestureDetector(
+                        child: const Icon(
+                          Icons.close,
+                          size: 24,
+                          color: Colors.black,
+                        ),
+                        onTap: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /* body */
+                  // 이미지
+                  foodStoreModel.storeImgUrl?.isNotEmpty == true
+                      ? CircleAvatar(
+                          radius: 32,
+                          backgroundImage: NetworkImage(
+                            foodStoreModel.storeImgUrl!,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.image_not_supported,
+                          size: 32,
+                        ),
+
+                  // 코멘트
+                  Text(
+                    foodStoreModel.storeComment,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 15, color: Colors.black),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // 하단 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButtonCustom(
+                      text: '상세 보기',
+                      backgroundColor: Colors.black,
+                      textColor: Colors.white,
+                      onPressed: () {
+                        // 상세보기 페이지로 이동
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

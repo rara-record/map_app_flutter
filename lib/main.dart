@@ -3,6 +3,7 @@ import 'package:map_app/screen/edit_screen.dart';
 import 'package:map_app/screen/login_screen.dart';
 import 'package:map_app/screen/main_screen.dart';
 import 'package:map_app/screen/register_screen.dart';
+import 'package:map_app/screen/search_address.dart';
 import 'package:map_app/screen/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/main': (context) => const MainScreen(),
         '/edit': (context) => const EditScreen(),
+        '/search_address': (context) => const SearchAddress(),
       },
     );
   }

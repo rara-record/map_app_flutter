@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:map_app/common/snackbar_uril.dart';
+import 'package:map_app/model/food_store.dart';
 import 'package:map_app/widget/appbar.dart';
 import 'package:map_app/widget/buttons.dart';
 import 'package:map_app/widget/text.dart';
@@ -10,6 +12,7 @@ import 'package:map_app/widget/text_fields.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:map_app/model/users.dart';
 import 'package:daum_postcode_search/data_model.dart';
+import 'package:http/http.dart' as http;
 
 class EditScreen extends StatefulWidget {
   const EditScreen({super.key});
@@ -131,7 +134,16 @@ class _EditScreenState extends State<EditScreen> {
                       // supabase db에 insert
                       bool isEditSuccess = await editFoodStore();
 
-                      // if (!context.mounted) return;
+                      if (!context.mounted) return;
+
+                      if (!isEditSuccess) {
+                        showSnackBar(context, '맛집 등록 중 문제가 발생했습니다');
+                        Navigator.pop(context);
+                        return;
+                      }
+
+                      showSnackBar(context, '맛집 등록을 성공 하였습니다');
+                      Navigator.pop(context, 'completed_edit');
                     },
                   ),
                 )
@@ -309,11 +321,54 @@ class _EditScreenState extends State<EditScreen> {
       // 업로드 된 파일의 이미지 url 주소를 취득
       imageUrl = supabase.storage
           .from('food_pick')
-          .getPublicUrl('profiles/$nowTime.jpg');
+          .getPublicUrl('stores/$nowTime.jpg');
     }
 
     // 2. 네이버 클라우드 플랫폼에서 지원하는 geocoding api을 활용하여 주소 -> 위도, 경도 변환
+    // https://api.ncloud-docs.com/docs/ai-naver-mapsgeocoding-geocode
+    final String apiUrl =
+        'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=${_storeController.text}';
+    final apiResponse = await http.get(
+      Uri.parse(apiUrl),
+      headers: <String, String>{
+        "X-NCP-APIGW-API-KEY-ID": "pnojo08adn",
+        "X-NCP-APIGW-API-KEY": "Hdul1HkVjhWYNyDKfFUiqNXuDILMRjxCYgUpBINc",
+        "Accept": "application/json",
+      },
+    );
 
-    return true;
+    if (apiResponse.statusCode == 200) {
+      // api 호출 성공
+      Map<String, dynamic> parsedJson = jsonDecode(apiResponse.body);
+
+      if (parsedJson['meta']['totalCount'] == 0) {
+        if (!mounted) return false;
+        showSnackBar(context, '주소를 다시 입력해주세요.');
+        return false;
+      }
+
+      // 위도, 경도 취득
+      double latitude = double.parse(parsedJson['addresses'][0]['y']); // 위도값 추출
+      double longitude =
+          double.parse(parsedJson['addresses'][0]['x']); // 경도값 추출
+
+      // supabase db set
+      await supabase.from('food_store').insert(
+            FoodStoreModel(
+              storeName: _storeNameController.text,
+              storeAddress: _storeController.text,
+              storeComment: _storeMemoController.text,
+              uid: supabase.auth.currentUser!.id,
+              storeImgUrl: imageUrl,
+              latitude: latitude,
+              longitude: longitude,
+            ).toMap(),
+          );
+
+      return true;
+    } else {
+      // api 호출 실패
+      return false;
+    }
   }
 }

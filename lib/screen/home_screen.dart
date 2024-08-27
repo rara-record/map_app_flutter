@@ -83,6 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(),
+        backgroundColor: Colors.black,
+        onPressed: () {
+          Navigator.pushNamed(context, '/edit');
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 

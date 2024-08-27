@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_app/screen/edit_screen.dart';
 import 'package:map_app/screen/login_screen.dart';
 import 'package:map_app/screen/main_screen.dart';
 import 'package:map_app/screen/register_screen.dart';
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/main': (context) => const MainScreen(),
+        '/edit': (context) => const EditScreen(),
       },
     );
   }

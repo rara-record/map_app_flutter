@@ -9,7 +9,7 @@ class FoodStoreModel {
   String uid; // supabase user 고유값
   double latitude; // 위도
   double longitude; // 경도
-  DateTime createdAt;
+  DateTime? createdAt;
 
   // constructor, Dart에서는 생성자를 클래스 이름과 동일한 메서드로 정의
   // 객체를 생성할 때 호출되며, 생성자에 전달된 인자들을 사용하여 클래스 내부의 속성들이 초기화된다.
@@ -22,7 +22,7 @@ class FoodStoreModel {
     required this.uid,
     required this.latitude,
     required this.longitude,
-    required this.createdAt,
+    this.createdAt,
   });
 
   // 팩토리 생성자:

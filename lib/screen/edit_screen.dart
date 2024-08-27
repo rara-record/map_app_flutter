@@ -9,6 +9,7 @@ import 'package:map_app/widget/text.dart';
 import 'package:map_app/widget/text_fields.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:map_app/model/users.dart';
+import 'package:daum_postcode_search/data_model.dart';
 
 class EditScreen extends StatefulWidget {
   const EditScreen({super.key});
@@ -21,9 +22,12 @@ class _EditScreenState extends State<EditScreen> {
   final formKey = GlobalKey<FormState>();
   final supabase = Supabase.instance.client;
   File? storeImage; // 갤러리에서 새로 선택한 맛집정보 이미지
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _nicknameController = TextEditingController();
-  final TextEditingController _memoController = TextEditingController();
+  DataModel? dataModel; // 주소 검색 결과값을 담는 변수
+  final TextEditingController _storeController = TextEditingController(); // 주소
+  final TextEditingController _storeNameController =
+      TextEditingController(); // 별명
+  final TextEditingController _storeMemoController =
+      TextEditingController(); // 메모
 
   @override
   Widget build(BuildContext context) {
@@ -40,46 +44,58 @@ class _EditScreenState extends State<EditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 프로필 사진
+                // 맛집 사진
                 GestureDetector(
                     child: _buildStoreImg(),
-                    // 프로필 이미지 변경 및 삭체 팝업 띄우기
+                    // 맛집 이미지 변경 및 삭체 팝업 띄우기
                     onTap: () {
                       showBottomSheetAboutStoreImg();
                     }),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // 맛집 위치
                 const SectionText(
                     text: '맛집 위치(도로명 주소)', textColor: Colors.black),
                 const SizedBox(height: 8),
                 TextFormFieldCustom(
-                  hintText: '',
+                  hintText: '클릭하여 주소 입력',
                   isPasswordField: false,
-                  isReadOnly: false,
-                  keyboardType: TextInputType.text,
+                  isReadOnly: true,
+                  keyboardType: TextInputType.streetAddress,
                   textInputAction: TextInputAction.next,
-                  validator: (value) => inputNameValidator(value),
-                  controller: _addressController,
+                  validator: (value) => inputStoreValidator(value),
+                  controller: _storeController,
+                  onTap: () async {
+                    // 주소 검색 웹뷰 화면으로 이동
+                    var result =
+                        await Navigator.pushNamed(context, '/search_address');
+                    if (result != null) {
+                      setState(() {
+                        dataModel = result as DataModel;
+                        _storeController.text =
+                            dataModel?.roadAddress ?? '맛집 주소를 선택 해주세요';
+                      });
+                    }
+                  },
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // 맛집 별명
                 const SectionText(text: '맛집 별명', textColor: Colors.black),
                 const SizedBox(height: 8),
                 TextFormFieldCustom(
-                  hintText: '',
+                  hintText: '별명을 입력해주세요.',
                   isPasswordField: false,
                   isReadOnly: false,
-                  keyboardType: TextInputType.text,
+                  keyboardType: TextInputType.name,
                   textInputAction: TextInputAction.next,
                   validator: (value) => inputNameValidator(value),
-                  controller: _nicknameController,
+                  controller: _storeNameController,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // 메모
                 const SectionText(text: '메모', textColor: Colors.black),
@@ -88,14 +104,14 @@ class _EditScreenState extends State<EditScreen> {
                   hintText: '',
                   isPasswordField: false,
                   isReadOnly: false,
-                  maxLines: 10,
-                  keyboardType: TextInputType.emailAddress,
+                  maxLines: 5,
+                  keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
-                  validator: (value) => inputNameValidator(value),
-                  controller: _memoController,
+                  validator: (value) => inputMemoValidator(value),
+                  controller: _storeMemoController,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
                 // 맛집 등록 완료 버튼
                 Container(
@@ -107,27 +123,15 @@ class _EditScreenState extends State<EditScreen> {
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
                     onPressed: () async {
-                      // String emailValue = _emailController.text;
-                      // String passwordValue = _passwordController.text;
+                      // 유효성 검사 체크
+                      if (!formKey.currentState!.validate()) {
+                        return;
+                      }
 
-                      // // 유효성 검사 체크
-                      // if (!formKey.currentState!.validate()) {
-                      //   return;
-                      // }
-
-                      // // supabase 계정 등록
-                      // bool isRegisterSuccess =
-                      //     await registerAccount(emailValue, passwordValue);
+                      // supabase db에 insert
+                      bool isEditSuccess = await editFoodStore();
 
                       // if (!context.mounted) return;
-
-                      // if (!isRegisterSuccess) {
-                      //   showSnackBar(context, '회원가입에 실패했습니다.');
-                      //   return;
-                      // }
-
-                      // showSnackBar(context, '회원가입에 성공하였습니다.');
-                      // Navigator.pop(context);
                     },
                   ),
                 )
@@ -202,13 +206,13 @@ class _EditScreenState extends State<EditScreen> {
                       fontSize: 18,
                     )),
               ),
-              // 프로필 사진 삭제
+              // 맛집 사진 삭제
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   deleteProfileImage();
                 },
-                child: const Text('프로필 사진 삭제',
+                child: const Text('맛집 사진 삭제',
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -248,16 +252,32 @@ class _EditScreenState extends State<EditScreen> {
   }
 
   void deleteProfileImage() {
-    // 프로필 사진 삭제
+    // 맛집 사진 삭제
     setState(() {
       storeImage = null;
     });
   }
 
-  inputNameValidator(value) {
-    // 닉네임 필드 검증 함수
+  inputStoreValidator(value) {
+    // 맛집 주소 검증
     if (value.isEmpty) {
-      return '닉네임을 입력해주세요';
+      return '주소를 입력해주세요.';
+    }
+    return null;
+  }
+
+  inputNameValidator(value) {
+    // 맛집 별명 검증
+    if (value.isEmpty) {
+      return '별명을 입력해주세요.';
+    }
+    return null;
+  }
+
+  inputMemoValidator(value) {
+    // 맛집 메모 검증
+    if (value.isEmpty) {
+      return '메모를 입력해주세요.';
     }
     return null;
   }
@@ -270,74 +290,30 @@ class _EditScreenState extends State<EditScreen> {
     return null;
   }
 
-  inputPasswordValidator(value) {
-    // 비밀번호 필드 검증 함수
-    if (value.isEmpty) {
-      return '비밀번호를 입력해주세요';
+  Future<bool> editFoodStore() async {
+    DateTime nowTime = DateTime.now();
+
+    // 1. 이미지 업로드
+    String? imageUrl;
+
+    if (storeImage != null) {
+      final imgFile = storeImage;
+
+      // 이미지 파일 업로드
+      await supabase.storage.from('food_pick').upload(
+            'stores/$nowTime.jpg',
+            imgFile!,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          );
+
+      // 업로드 된 파일의 이미지 url 주소를 취득
+      imageUrl = supabase.storage
+          .from('food_pick')
+          .getPublicUrl('profiles/$nowTime.jpg');
     }
-    return null;
+
+    // 2. 네이버 클라우드 플랫폼에서 지원하는 geocoding api을 활용하여 주소 -> 위도, 경도 변환
+
+    return true;
   }
-
-  inputPasswordReValidator(value) {
-    // 비밀번호 필드 재검증 함수
-    if (value.isEmpty) {
-      return '비밀번호를 입력해주세요';
-    }
-    return null;
-  }
-
-  inputIntroduceValidator(value) {
-    // 자기소개 필드 검증 함수
-    if (value.isEmpty) {
-      return '자기소개를 입력해주세요';
-    }
-    return null;
-  }
-
-  // Future<bool> registerAccount(String emailValue, String passwordValue) async {
-  //   // 이메일 회원가입 시도
-  //   bool isRegisterSuccess = false;
-  //   final AuthResponse response =
-  //       await supabase.auth.signUp(email: emailValue, password: passwordValue);
-
-  //   if (response.user != null) {
-  //     // 회원가입 정상 처리
-  //     isRegisterSuccess = true;
-
-  //     // 1. 프로필 사진 등록했다면 업로드 처리
-  //     DateTime nowTime = DateTime.now();
-  //     String? imageUrl;
-  //     if (storeImage  != null) {
-  //       final imgFile = storeImage;
-
-  //       // 이미지 파일 업로드
-  //       await supabase.storage.from('food_pick').upload(
-  //             'profiles/${response.user!.id}_$nowTime.jpg',
-  //             imgFile!,
-  //             fileOptions:
-  //                 const FileOptions(cacheControl: '3600', upsert: true),
-  //           );
-
-  //       // 업로드 된 파일의 이미지 url 주소를 취득
-  //       imageUrl = supabase.storage
-  //           .from('food_pick')
-  //           .getPublicUrl('profiles/${response.user!.id}_$nowTime.jpg');
-  //     }
-
-  //     // 2. supabase db에 insert
-  //     await supabase.from('user').insert(
-  //           UserModel(
-  //                   profileUrl: imageUrl,
-  //                   name: _nameController.text,
-  //                   email: emailValue,
-  //                   introduce: _introduceController.text,
-  //                   uid: response.user!.id)
-  //               .toMap(),
-  //         );
-  //   } else {
-  //     isRegisterSuccess = false;
-  //   }
-
-  //   return isRegisterSuccess;
-  // }
 }

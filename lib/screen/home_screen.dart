@@ -86,8 +86,17 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(),
         backgroundColor: Colors.black,
-        onPressed: () {
-          Navigator.pushNamed(context, '/edit');
+        onPressed: () async {
+          var result = await Navigator.pushNamed(context, '/edit');
+
+          // 데이터가 수정되었을 때 지도에 마커 다시 그리기
+          if (result != null) {
+            if (result == 'completed_edit') {
+              _lstFoodStore = await fetchStoreInfo(); // 수정된 데이터 다시 가져오기
+              _buildMarkers(); // 수정된 데이터로 마커 다시 그리기
+              setState(() {}); // force update
+            }
+          }
         },
         child: const Icon(Icons.add, color: Colors.white),
       ),

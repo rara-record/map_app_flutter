@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:map_app/model/food_store.dart';
+import 'package:map_app/model/users.dart';
 import 'package:map_app/widget/appbar.dart';
 import 'package:map_app/widget/text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,9 +15,14 @@ class DetailScreen extends StatefulWidget {
 }
 
 class _DetailScreenState extends State<DetailScreen> {
-  final formKey = GlobalKey<FormState>();
   final supabase = Supabase.instance.client;
-  File? storeImage; // 갤러리에서 새로 선택한 맛집정보 이미지
+  String? _uploaderName;
+
+  @override
+  void initState() {
+    _getUploaderUserName();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,10 @@ class _DetailScreenState extends State<DetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 이미지
                 _buildStoreImg(),
+
+                // 맛집 정보
                 const SizedBox(height: 16),
                 const SectionText(
                     text: '맛집 위치 (도로명 주소)', textColor: Colors.black),
@@ -44,9 +51,12 @@ class _DetailScreenState extends State<DetailScreen> {
                 const SizedBox(height: 16),
                 const SectionText(text: '맛집 공유자', textColor: Colors.black),
                 const SizedBox(height: 8),
+                ReadOnlyText(title: _uploaderName ?? ''),
+
                 const SizedBox(height: 16),
                 const SectionText(text: '메모', textColor: Colors.black),
                 const SizedBox(height: 8),
+                ReadOnlyText(title: widget.foodStoreModel.storeComment),
               ],
             ),
           ),
@@ -84,5 +94,17 @@ class _DetailScreenState extends State<DetailScreen> {
         child: const Icon(Icons.image_search, size: 96, color: Colors.white),
       );
     }
+  }
+
+  Future<void> _getUploaderUserName() async {
+    final userMap = await supabase
+        .from('users')
+        .select()
+        .eq('uid', widget.foodStoreModel.uid);
+    UserModel userModel =
+        userMap.map((user) => UserModel.fromJSON(user)).single;
+    setState(() {
+      _uploaderName = userModel.name;
+    });
   }
 }

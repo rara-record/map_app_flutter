@@ -10,7 +10,6 @@ import 'package:map_app/widget/buttons.dart';
 import 'package:map_app/widget/text.dart';
 import 'package:map_app/widget/text_fields.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:map_app/model/users.dart';
 import 'package:daum_postcode_search/data_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -26,10 +25,11 @@ class _EditScreenState extends State<EditScreen> {
   final supabase = Supabase.instance.client;
   File? storeImage; // 갤러리에서 새로 선택한 맛집정보 이미지
   DataModel? dataModel; // 주소 검색 결과값을 담는 변수
-  final TextEditingController _storeController = TextEditingController(); // 주소
+  final TextEditingController _storeAddressController =
+      TextEditingController(); // 주소
   final TextEditingController _storeNameController =
       TextEditingController(); // 별명
-  final TextEditingController _storeMemoController =
+  final TextEditingController _storeCommentController =
       TextEditingController(); // 메모
 
   @override
@@ -68,7 +68,7 @@ class _EditScreenState extends State<EditScreen> {
                   keyboardType: TextInputType.streetAddress,
                   textInputAction: TextInputAction.next,
                   validator: (value) => inputStoreValidator(value),
-                  controller: _storeController,
+                  controller: _storeAddressController,
                   onTap: () async {
                     // 주소 검색 웹뷰 화면으로 이동
                     var result =
@@ -76,7 +76,7 @@ class _EditScreenState extends State<EditScreen> {
                     if (result != null) {
                       setState(() {
                         dataModel = result as DataModel;
-                        _storeController.text =
+                        _storeAddressController.text =
                             dataModel?.roadAddress ?? '맛집 주소를 선택 해주세요';
                       });
                     }
@@ -111,7 +111,7 @@ class _EditScreenState extends State<EditScreen> {
                   keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   validator: (value) => inputMemoValidator(value),
-                  controller: _storeMemoController,
+                  controller: _storeCommentController,
                 ),
 
                 const SizedBox(height: 24),
@@ -327,13 +327,12 @@ class _EditScreenState extends State<EditScreen> {
     // 2. 네이버 클라우드 플랫폼에서 지원하는 geocoding api을 활용하여 주소 -> 위도, 경도 변환
     // https://api.ncloud-docs.com/docs/ai-naver-mapsgeocoding-geocode
     final String apiUrl =
-        'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=${_storeController.text}';
+        'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=${_storeAddressController.text}';
     final apiResponse = await http.get(
       Uri.parse(apiUrl),
       headers: <String, String>{
         "X-NCP-APIGW-API-KEY-ID": "pnojo08adn",
         "X-NCP-APIGW-API-KEY": "Hdul1HkVjhWYNyDKfFUiqNXuDILMRjxCYgUpBINc",
-        "Accept": "application/json",
       },
     );
 
@@ -356,8 +355,8 @@ class _EditScreenState extends State<EditScreen> {
       await supabase.from('food_store').insert(
             FoodStoreModel(
               storeName: _storeNameController.text,
-              storeAddress: _storeController.text,
-              storeComment: _storeMemoController.text,
+              storeAddress: _storeAddressController.text,
+              storeComment: _storeCommentController.text,
               uid: supabase.auth.currentUser!.id,
               storeImgUrl: imageUrl,
               latitude: latitude,

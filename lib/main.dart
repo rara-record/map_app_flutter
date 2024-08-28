@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:map_app/model/food_store.dart';
+import 'package:map_app/screen/detail_screen.dart';
 import 'package:map_app/screen/edit_screen.dart';
 import 'package:map_app/screen/login_screen.dart';
 import 'package:map_app/screen/main_screen.dart';
@@ -48,6 +50,18 @@ class MyApp extends StatelessWidget {
         '/main': (context) => const MainScreen(),
         '/edit': (context) => const EditScreen(),
         '/search_address': (context) => const SearchAddress(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/detail') {
+          final FoodStoreModel foodStoreModel =
+              settings.arguments as FoodStoreModel;
+          return MaterialPageRoute(
+            builder: (context) {
+              return DetailScreen(foodStoreModel: foodStoreModel);
+            },
+          );
+        }
+        return null;
       },
     );
   }

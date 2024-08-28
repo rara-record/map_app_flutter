@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:map_app/model/food_store.dart';
@@ -238,7 +237,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 15, color: Colors.black),
                   ),
                   const SizedBox(height: 8),
-                  _buildDetailButton()
+                  _buildDetailButton(
+                    () {
+                      // 상세보기 페이지로 이동
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/detail',
+                          arguments: foodStoreModel);
+                    },
+                  )
                 ],
               ),
             ),
@@ -262,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
   }
 
-  Widget _buildDetailButton() {
+  Widget _buildDetailButton(VoidCallback onPressed) {
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -270,10 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
         text: '상세 보기',
         backgroundColor: Colors.black,
         textColor: Colors.white,
-        onPressed: () {
-          // 상세보기 페이지로 이동
-          Navigator.pushNamed(context, '/detail');
-        },
+        onPressed: onPressed,
       ),
     );
   }

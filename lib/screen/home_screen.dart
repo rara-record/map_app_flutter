@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:map_app/model/food_store.dart';
 import 'package:map_app/widget/buttons.dart';
 import 'package:map_app/widget/text.dart';
+import 'package:map_app/widget/text_fields.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // 홈 화면
@@ -29,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<FoodStoreModel>? _foodStores; // 맛집 정보들
 
   bool _isLocationPermissionGranted = false; // 위치 권한 허용 여부
+
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -58,7 +61,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
           // 데이터를 제공 받은 시점
           _foodStores = snapshot.data;
-          return _buildNaverMap();
+
+          return Stack(
+            children: [
+              _buildNaverMap(),
+              Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 64),
+                child: TextFormFieldCustom(
+                  hintText: '맛집 검색',
+                  isPasswordField: false,
+                  isReadOnly: false,
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.search,
+                  validator: (value) => inputSearchValidator(value),
+                  controller: _searchController,
+                  onFieldSubmitted: (value) async {
+                    final foodListMap = await supabase
+                        .from('food_store')
+                        .select()
+                        .like('store_name', '%$value%');
+                    List<FoodStoreModel> serchFoodStore = foodListMap
+                        .map((el) => FoodStoreModel.fromJSON(el))
+                        .toList();
+
+                    if (!context.mounted) return;
+                    Navigator.pushNamed(
+                      context,
+                      '/search_result',
+                      arguments: serchFoodStore,
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -279,5 +316,13 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: onPressed,
       ),
     );
+  }
+
+  inputSearchValidator(value) {
+    // 검색바 필드 검증 함수
+    if (value.isEmpty) {
+      return '검색어를 입력해주세요';
+    }
+    return null;
   }
 }

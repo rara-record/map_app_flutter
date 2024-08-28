@@ -165,10 +165,9 @@ class _DetailScreenState extends State<DetailScreen> {
         .eq('food_store_id', widget.foodStoreModel.id!)
         .eq('favorite_uid', supabase.auth.currentUser!.id);
 
-    if (favoriteMap.isNotEmpty) {
-      isFavorite = true;
-    } else {
-      isFavorite = false;
-    }
+    // 찜하기 정보가 있으면 찜하기 상태로 변경
+    setState(() {
+      favoriteMap.isNotEmpty ? isFavorite = true : isFavorite = false;
+    });
   }
 }

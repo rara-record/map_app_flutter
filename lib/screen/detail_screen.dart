@@ -71,8 +71,17 @@ class _DetailScreenState extends State<DetailScreen> {
                             text: '찜하기 취소',
                             backgroundColor: Colors.grey,
                             textColor: Colors.white,
-                            onPressed: () {
-                              // 찜하기 취소
+                            onPressed: () async {
+                              // 찜하기 정보 삭제
+                              await supabase
+                                  .from('favorite')
+                                  .delete()
+                                  .eq('food_store_id',
+                                      widget.foodStoreModel.id!)
+                                  .eq('food_store_uid',
+                                      supabase.auth.currentUser!.id);
+                              // 찜하기 정보 다시 가져오기
+                              _getFavorite();
                             }),
                       )
                     : SizedBox(
@@ -82,7 +91,18 @@ class _DetailScreenState extends State<DetailScreen> {
                             text: '찜하기',
                             backgroundColor: Colors.black,
                             textColor: Colors.white,
-                            onPressed: () {}),
+                            onPressed: () async {
+                              // 찜하기 정보 추가
+                              await supabase
+                                  .from('favorite')
+                                  .upsert(FavoriteModel(
+                                    foodStoreId: widget.foodStoreModel.id!,
+                                    favoriteUid: supabase.auth.currentUser!.id,
+                                  ).toMap());
+
+                              // 찜하기 정보 다시 가져오기
+                              _getFavorite();
+                            }),
                       )
               ],
             ),

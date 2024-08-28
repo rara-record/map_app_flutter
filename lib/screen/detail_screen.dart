@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:map_app/model/food_store.dart';
 import 'package:map_app/widget/appbar.dart';
-import 'package:map_app/widget/text_fields.dart';
+import 'package:map_app/widget/text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // 상세 화면
@@ -19,12 +19,6 @@ class _DetailScreenState extends State<DetailScreen> {
   final formKey = GlobalKey<FormState>();
   final supabase = Supabase.instance.client;
   File? storeImage; // 갤러리에서 새로 선택한 맛집정보 이미지
-  final TextEditingController _storeAddressController =
-      TextEditingController(); // 주소
-  final TextEditingController _userNameController =
-      TextEditingController(); // 별명
-  final TextEditingController _storeCommentController =
-      TextEditingController(); // 메모
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +33,20 @@ class _DetailScreenState extends State<DetailScreen> {
           width: double.infinity,
           child: Form(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildStoreImg(),
+                const SizedBox(height: 16),
+                const SectionText(
+                    text: '맛집 위치 (도로명 주소)', textColor: Colors.black),
+                const SizedBox(height: 8),
+                ReadOnlyText(title: widget.foodStoreModel.storeName),
+                const SizedBox(height: 16),
+                const SectionText(text: '맛집 공유자', textColor: Colors.black),
+                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+                const SectionText(text: '메모', textColor: Colors.black),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -49,6 +55,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
+  // 맛집 이미지
   Widget _buildStoreImg() {
     if (widget.foodStoreModel.storeImgUrl != null) {
       return Container(

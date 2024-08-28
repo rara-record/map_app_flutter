@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_app/common/snackbar_uril.dart';
 import 'package:map_app/model/favorite.dart';
 import 'package:map_app/model/food_store.dart';
 import 'package:map_app/model/users.dart';
@@ -35,64 +36,70 @@ class _DetailScreenState extends State<DetailScreen> {
         title: widget.foodStoreModel.storeName,
         isLeading: true,
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          width: double.infinity,
-          child: Form(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 이미지
-                _buildStoreImg(),
+      body: Container(
+        margin: const EdgeInsets.all(16),
+        width: double.infinity,
+        child: Form(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 이미지
+              _buildStoreImg(),
 
-                // 맛집 정보
-                const SizedBox(height: 16),
-                const SectionText(
-                    text: '맛집 위치 (도로명 주소)', textColor: Colors.black),
-                const SizedBox(height: 8),
-                ReadOnlyText(title: widget.foodStoreModel.storeName),
-                const SizedBox(height: 16),
-                const SectionText(text: '맛집 공유자', textColor: Colors.black),
-                const SizedBox(height: 8),
-                ReadOnlyText(title: _uploaderName ?? ''),
-                const SizedBox(height: 16),
-                const Expanded(
-                    child: SectionText(text: '메모', textColor: Colors.black)),
-                const SizedBox(height: 8),
-                ReadOnlyText(title: widget.foodStoreModel.storeComment),
-
-                // 찜하기 or 취소 버튼
-                isFavorite
-                    ? SizedBox(
-                        width: double.infinity,
-                        height: 69,
-                        child: ElevatedButtonCustom(
-                            text: '찜하기 취소',
-                            backgroundColor: Colors.grey,
-                            textColor: Colors.white,
-                            onPressed: () async {
+              // 맛집 정보
+              const SizedBox(height: 16),
+              const SectionText(
+                  text: '맛집 위치 (도로명 주소)', textColor: Colors.black),
+              const SizedBox(height: 8),
+              ReadOnlyText(title: widget.foodStoreModel.storeName),
+              const SizedBox(height: 16),
+              const SectionText(text: '맛집 공유자', textColor: Colors.black),
+              const SizedBox(height: 8),
+              ReadOnlyText(title: _uploaderName ?? ''),
+              const SizedBox(height: 16),
+              const SectionText(text: '메모', textColor: Colors.black),
+              const SizedBox(height: 8),
+              Expanded(
+                child: ReadOnlyText(title: widget.foodStoreModel.storeComment),
+              ),
+              const SizedBox(height: 16),
+              // 찜하기 or 취소 버튼
+              isFavorite
+                  ? SizedBox(
+                      width: double.infinity,
+                      height: 69,
+                      child: ElevatedButtonCustom(
+                          text: '찜하기 취소',
+                          backgroundColor: Colors.grey,
+                          textColor: Colors.white,
+                          onPressed: () async {
+                            try {
                               // 찜하기 정보 삭제
                               await supabase
                                   .from('favorite')
                                   .delete()
                                   .eq('food_store_id',
                                       widget.foodStoreModel.id!)
-                                  .eq('food_store_uid',
+                                  .eq('favorite_uid',
                                       supabase.auth.currentUser!.id);
                               // 찜하기 정보 다시 가져오기
                               _getFavorite();
-                            }),
-                      )
-                    : SizedBox(
-                        width: double.infinity,
-                        height: 69,
-                        child: ElevatedButtonCustom(
-                            text: '찜하기',
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
-                            onPressed: () async {
-                              // 찜하기 정보 추가
+                            } catch (error) {
+                              if (!context.mounted) return;
+                              showSnackBar(context, '찜하기 취소가 실패했어요.');
+                            }
+                          }),
+                    )
+                  : SizedBox(
+                      width: double.infinity,
+                      height: 69,
+                      child: ElevatedButtonCustom(
+                          text: '찜하기',
+                          backgroundColor: Colors.black,
+                          textColor: Colors.white,
+                          onPressed: () async {
+                            // 찜하기 정보 추가
+                            try {
                               await supabase
                                   .from('favorite')
                                   .upsert(FavoriteModel(
@@ -102,10 +109,13 @@ class _DetailScreenState extends State<DetailScreen> {
 
                               // 찜하기 정보 다시 가져오기
                               _getFavorite();
-                            }),
-                      )
-              ],
-            ),
+                            } catch (error) {
+                              if (!context.mounted) return;
+                              showSnackBar(context, '찜하기가 실패했어요');
+                            }
+                          }),
+                    )
+            ],
           ),
         ),
       ),

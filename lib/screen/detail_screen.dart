@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:map_app/model/favorite.dart';
 import 'package:map_app/model/food_store.dart';
 import 'package:map_app/model/users.dart';
 import 'package:map_app/widget/appbar.dart';
+import 'package:map_app/widget/buttons.dart';
 import 'package:map_app/widget/text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,11 +18,13 @@ class DetailScreen extends StatefulWidget {
 
 class _DetailScreenState extends State<DetailScreen> {
   final supabase = Supabase.instance.client;
-  String? _uploaderName;
+  String? _uploaderName; // 맛집 공유자 이름
+  bool isFavorite = false; // 사용자 찜하기 여부
 
   @override
   void initState() {
     _getUploaderUserName();
+    _getFavorite();
     super.initState();
   }
 
@@ -52,11 +56,34 @@ class _DetailScreenState extends State<DetailScreen> {
                 const SectionText(text: '맛집 공유자', textColor: Colors.black),
                 const SizedBox(height: 8),
                 ReadOnlyText(title: _uploaderName ?? ''),
-
                 const SizedBox(height: 16),
-                const SectionText(text: '메모', textColor: Colors.black),
+                const Expanded(
+                    child: SectionText(text: '메모', textColor: Colors.black)),
                 const SizedBox(height: 8),
                 ReadOnlyText(title: widget.foodStoreModel.storeComment),
+
+                // 찜하기 or 취소 버튼
+                isFavorite
+                    ? SizedBox(
+                        width: double.infinity,
+                        height: 69,
+                        child: ElevatedButtonCustom(
+                            text: '찜하기 취소',
+                            backgroundColor: Colors.grey,
+                            textColor: Colors.white,
+                            onPressed: () {
+                              // 찜하기 취소
+                            }),
+                      )
+                    : SizedBox(
+                        width: double.infinity,
+                        height: 69,
+                        child: ElevatedButtonCustom(
+                            text: '찜하기',
+                            backgroundColor: Colors.black,
+                            textColor: Colors.white,
+                            onPressed: () {}),
+                      )
               ],
             ),
           ),
@@ -96,9 +123,10 @@ class _DetailScreenState extends State<DetailScreen> {
     }
   }
 
+  // 공유자 이름 가져오기 TODO: 전역 상태
   Future<void> _getUploaderUserName() async {
     final userMap = await supabase
-        .from('users')
+        .from('user')
         .select()
         .eq('uid', widget.foodStoreModel.uid);
     UserModel userModel =
@@ -106,5 +134,21 @@ class _DetailScreenState extends State<DetailScreen> {
     setState(() {
       _uploaderName = userModel.name;
     });
+  }
+
+  // 찜하기 정보 가져오기
+  Future<void> _getFavorite() async {
+    // 현재 찜하기 정보 가져오기 (내가 찜한 상태)
+    final favoriteMap = await supabase
+        .from('favorite')
+        .select()
+        .eq('food_store_id', widget.foodStoreModel.id!)
+        .eq('favorite_uid', supabase.auth.currentUser!.id);
+
+    if (favoriteMap.isNotEmpty) {
+      isFavorite = true;
+    } else {
+      isFavorite = false;
+    }
   }
 }

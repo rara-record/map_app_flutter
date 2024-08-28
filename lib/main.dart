@@ -6,6 +6,7 @@ import 'package:map_app/screen/login_screen.dart';
 import 'package:map_app/screen/main_screen.dart';
 import 'package:map_app/screen/register_screen.dart';
 import 'package:map_app/screen/search_address.dart';
+import 'package:map_app/screen/search_result.dart';
 import 'package:map_app/screen/splash_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
@@ -57,6 +58,16 @@ class MyApp extends StatelessWidget {
           return MaterialPageRoute(
             builder: (context) {
               return DetailScreen(foodStoreModel: foodStoreModel);
+            },
+          );
+        }
+
+        if (settings.name == '/search_result') {
+          List<FoodStoreModel> listFoodStore =
+              settings.arguments as List<FoodStoreModel>;
+          return MaterialPageRoute(
+            builder: (context) {
+              return SearchResultScreen(listFoodStore: listFoodStore);
             },
           );
         }

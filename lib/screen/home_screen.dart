@@ -9,6 +9,13 @@ import 'package:map_app/widget/text.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // 홈 화면
+
+/*
+  앱 시작 시 한 번만 권한을 확인하고 요청하도록 로직을 분리합니다.
+  권한이 거부된 경우, 사용자에게 설명을 제공하고 설정 화면으로 이동할 수 있는 옵션을 제공합니다.
+  위치 정보를 사용할 수 없는 경우에 대한 대체 로직(예: 기본 위치 사용)을 구현합니다.
+  권한 요청 프로세스를 비동기적으로 처리하여 UI 블로킹을 방지합니다. 
+ */
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -25,8 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<List<FoodStoreModel>>? _dateFuture;
   List<FoodStoreModel>? _lstFoodStore; // 맛집 정보들
 
+  bool _locationPermissionGranted = false; // 위치 권한 허용 여부
+
   @override
   void initState() {
+    _checkLocationPermission();
     _dateFuture = fetchStoreInfo();
     super.initState();
   }
@@ -103,7 +113,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<NCameraPosition> getMyLocation() async {
+  Future<List<FoodStoreModel>>? fetchStoreInfo() async {
+    // supaise에서 맛집 정보 가져오기
+    final foodListMap = await supabase.from('food_store').select();
+    List<FoodStoreModel> lstFoodStore =
+        foodListMap.map((el) => FoodStoreModel.fromJSON(el)).toList();
+    return lstFoodStore;
+  }
+
+  Future<void> _checkLocationPermission() async {
     // 위치 권한을 체크해서 권한 허용이 되어있다면 내 현위치 정보 가져오기
     bool serviceEnabled;
     LocationPermission permission;
@@ -129,6 +147,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return Future.error('Location permissions are denied forever');
     }
 
+    // 권한이 허용된 경우
+    setState(() {
+      _locationPermissionGranted = true;
+    });
+  }
+
+  Future<NCameraPosition> getMyLocation() async {
+    if (!_locationPermissionGranted) {
+      // 권한이 없는 경우 기본 위치 반환 또는 에러 처리
+      return const NCameraPosition(
+          target: NLatLng(37.5665, 126.9780), zoom: 12); // 서울시청 좌표
+    }
+
     // 현재 디바이스 기준 GPS 센서 값을 활용해서 현재 위치 추출
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
@@ -137,14 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // lat: 위도, lng: 경도
     return NCameraPosition(
         target: NLatLng(position.latitude, position.longitude), zoom: 12);
-  }
-
-  Future<List<FoodStoreModel>>? fetchStoreInfo() async {
-    // supaise에서 맛집 정보 가져오기
-    final foodListMap = await supabase.from('food_store').select();
-    List<FoodStoreModel> lstFoodStore =
-        foodListMap.map((el) => FoodStoreModel.fromJSON(el)).toList();
-    return lstFoodStore;
   }
 
   void _buildMarkers() {

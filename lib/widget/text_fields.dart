@@ -50,6 +50,8 @@ class _TextFormFieldCustomState extends State<TextFormFieldCustom> {
       onFieldSubmitted: widget.onFieldSubmitted,
       decoration: InputDecoration(
           // 기본 border
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(
             borderSide: const BorderSide(
               width: 2,

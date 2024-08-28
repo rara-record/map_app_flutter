@@ -145,12 +145,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> loginWithEmail(String emailValue, String passwordValue) async {
     bool isLoginSuccess = false;
-    final AuthResponse response = await supabase.auth
-        .signInWithPassword(email: emailValue, password: passwordValue);
 
-    if (response.user != null) {
+    try {
+      await supabase.auth
+          .signInWithPassword(email: emailValue, password: passwordValue);
       isLoginSuccess = true;
-    } else {
+    } catch (error) {
       isLoginSuccess = false;
     }
 

@@ -53,8 +53,7 @@ class MyApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/detail') {
-          final FoodStoreModel foodStoreModel =
-              settings.arguments as FoodStoreModel;
+          FoodStoreModel foodStoreModel = settings.arguments as FoodStoreModel;
           return MaterialPageRoute(
             builder: (context) {
               return DetailScreen(foodStoreModel: foodStoreModel);

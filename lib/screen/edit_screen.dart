@@ -122,7 +122,7 @@ class _EditScreenState extends State<EditScreen> {
                   width: double.infinity,
                   height: 64,
                   child: ElevatedButtonCustom(
-                    text: '가입 완료',
+                    text: '등록',
                     backgroundColor: Colors.black,
                     textColor: Colors.white,
                     onPressed: () async {

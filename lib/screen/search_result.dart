@@ -27,13 +27,32 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CommonAppBar(title: '검색 결과', isLeading: true),
+      appBar: const CommonAppBar(
+        title: '검색 결과',
+        isLeading: true,
+      ),
       body: widget.listFoodStore.isNotEmpty
           ? ListView.builder(
               itemCount: widget.listFoodStore.length,
               itemBuilder: (context, index) {
                 FoodStoreModel foodStoreModel = widget.listFoodStore[index];
-                return _buildListItemFoodStore(foodStoreModel);
+                return GestureDetector(
+                  child: _buildListItemFoodStore(foodStoreModel),
+                  onTap: () async {
+                    // 맛집 정보 상세 화면으로 이동
+                    var result = await Navigator.pushNamed(
+                      context,
+                      '/detail',
+                      arguments: foodStoreModel,
+                    );
+
+                    if (result == null) return;
+
+                    if (result == 'back_from_detail') {
+                      await _getMyFavorite();
+                    }
+                  },
+                );
               },
             )
           : const Text('검색 결과가 없습니다.'),
@@ -101,8 +120,9 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
 
     for (FavoriteModel favoriteModel in listFavorite) {
       // 찜하기 이력 검사
-      if (favoriteModel.id == foodStoreModel.id) {
+      if (favoriteModel.foodStoreId == foodStoreModel.id) {
         isFavorite = true;
+
         break;
       }
     }

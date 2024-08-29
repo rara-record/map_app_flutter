@@ -42,15 +42,53 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
 
   // 맛집 정보 리스트 아이템 생성
   Widget _buildListItemFoodStore(FoodStoreModel foodStoreModel) {
-    return SizedBox(
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: const BorderSide(
+            width: 2,
+            color: Colors.black,
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(foodStoreModel.storeName),
+              Expanded(
+                child: Text(
+                  foodStoreModel.storeName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               _buildFavoriteIcon(foodStoreModel),
             ],
+          ),
+          Text(
+            foodStoreModel.storeComment,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              foodStoreModel.storeAddress,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
